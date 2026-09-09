@@ -7,7 +7,12 @@ from langchain_core.runnables import RunnablePassthrough, RunnableLambda
 import os 
 
 def get_llm():
-    return ChatMistralAI(model = "mistral-small-latest", mistral_api_key = os.getenv("MISTRAL_API_KEY"),temperature=0.3)
+    return ChatMistralAI(
+        model="mistral-small-latest",
+        mistral_api_key=os.getenv("MISTRAL_API_KEY"),
+        temperature=0.3,
+        max_retries=0,
+    )
 
 
 def split_transcript(transcript: str) -> list:
@@ -73,6 +78,58 @@ def generate_title(transcipt : str) -> str:
     )
 
     return title_chain.invoke(transcipt[:2000])
+
+
+def analyze_transcript(transcript: str) -> dict:
+    """Generate all non-chat meeting insights with one LLM request."""
+    llm = get_llm()
+    prompt = ChatPromptTemplate.from_messages([
+        (
+            "system",
+            "Analyze the meeting transcript and return exactly these five sections. "
+            "Keep the title under 8 words. Use concise bullet points. "
+            "For action items include task, owner, and deadline when available. "
+            "If a section has no content, write 'None found.'\n\n"
+            "TITLE:\n<short title>\n\n"
+            "SUMMARY:\n<professional bullet-point summary>\n\n"
+            "ACTION ITEMS:\n<numbered action items>\n\n"
+            "KEY DECISIONS:\n<numbered decisions>\n\n"
+            "OPEN QUESTIONS:\n<numbered unresolved questions>\n\n"
+            "Do not add any other headings or commentary.",
+        ),
+        ("human", "{transcript}"),
+    ])
+    response = (prompt | llm | StrOutputParser()).invoke({"transcript": transcript})
+
+    sections = {
+        "title": "Untitled meeting",
+        "summary": "None found.",
+        "action_items": "None found.",
+        "key_decisions": "None found.",
+        "open_questions": "None found.",
+    }
+    headings = {
+        "TITLE:": "title",
+        "SUMMARY:": "summary",
+        "ACTION ITEMS:": "action_items",
+        "KEY DECISIONS:": "key_decisions",
+        "OPEN QUESTIONS:": "open_questions",
+    }
+    current = None
+    for line in response.splitlines():
+        heading = line.strip().upper()
+        if heading in headings:
+            current = headings[heading]
+            continue
+        if current:
+            value = line.strip()
+            if value:
+                if sections[current] in {"None found.", "Untitled meeting"}:
+                    sections[current] = value
+                else:
+                    sections[current] += "\n" + value
+
+    return sections
 
 
 

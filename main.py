@@ -1,8 +1,7 @@
 from dotenv import load_dotenv
 from utils.audio_processor import process_input
 from core.transcriber import transcribe_all
-from core.summarizer import summarize, generate_title
-from core.extractor import extract_action_items, extract_key_decisions, extract_questions
+from core.summarizer import analyze_transcript
 from core.rag_engine import build_rag_chain, ask_question
 
 
@@ -16,14 +15,13 @@ def run_pipeline(source :str, language :str = "english") -> dict:
     transcript = transcribe_all(chunks,language)
     print(f"raw transcription (first 300 characters ) {transcript[:300]}")
 
-    title = generate_title(transcript)
+    analysis = analyze_transcript(transcript)
 
-    summary = summarize(transcript)
-
-    action_item = extract_action_items(transcript)
-
-    decisions = extract_key_decisions(transcript)
-    questions = extract_questions(transcript)
+    title = analysis["title"]
+    summary = analysis["summary"]
+    action_item = analysis["action_items"]
+    decisions = analysis["key_decisions"]
+    questions = analysis["open_questions"]
     
     rag_chain = build_rag_chain(transcript)
 

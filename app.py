@@ -3,8 +3,7 @@ import time
 from dotenv import load_dotenv
 from utils.audio_processor import process_input
 from core.transcriber import transcribe_all
-from core.summarizer import summarize, generate_title
-from core.extractor import extract_action_items, extract_key_decisions, extract_questions
+from core.summarizer import analyze_transcript
 from core.rag_engine import build_rag_chain, ask_question
 
 load_dotenv()
@@ -388,17 +387,18 @@ if run_btn:
             update_step("transcript", "done")
 
             update_step("title", "active")
-            title = generate_title(transcript)
+            analysis = analyze_transcript(transcript)
+            title = analysis["title"]
             update_step("title", "done")
 
             update_step("summary", "active")
-            summary = summarize(transcript)
+            summary = analysis["summary"]
             update_step("summary", "done")
 
             update_step("extract", "active")
-            action_items  = extract_action_items(transcript)
-            decisions     = extract_key_decisions(transcript)
-            questions     = extract_questions(transcript)
+            action_items = analysis["action_items"]
+            decisions = analysis["key_decisions"]
+            questions = analysis["open_questions"]
             update_step("extract", "done")
 
             update_step("rag", "active")
