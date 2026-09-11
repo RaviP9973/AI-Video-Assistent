@@ -53,6 +53,7 @@ htmlcov/
 # =========================
 chroma_db/
 chroma/
+vector_db/
 vectorstore/
 embeddings/
 models/
@@ -62,8 +63,9 @@ models/
 *.safetensors
 
 # =========================
-# Audio / Video Files
+# Audio / Video / Downloads
 # =========================
+downloades/
 *.mp3
 *.wav
 *.m4a
@@ -93,6 +95,9 @@ tmp/
 # =========================
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # =========================
 # OS Files
@@ -110,6 +115,18 @@ dist/
 .eggs/
 
 # =========================
+# Node.js / Next.js (frontend)
+# =========================
+node_modules/
+.next/
+out/
+.turbo/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# =========================
 # Local Configuration
 # =========================
-*.local
+*.local

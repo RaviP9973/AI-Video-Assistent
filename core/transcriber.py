@@ -29,11 +29,12 @@ def load_model():
     return _model 
 
 
-def transcribe_chunk_whisper(chunk_path: str) -> str:
+def transcribe_chunk_whisper(chunk_path: str, translate: bool = False) -> str:
 
     model = load_model()  
 
-    result = model.transcribe(chunk_path, task="transcribe")  
+    task = "translate" if translate else "transcribe"
+    result = model.transcribe(chunk_path, task=task, fp16=False)
     return result["text"]  
 
 
